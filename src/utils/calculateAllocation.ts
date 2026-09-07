@@ -3,8 +3,8 @@ export interface AllocationResult {
   ethAmount: number
 }
 
-const BTC_WEIGHT = 0.7
-const ETH_WEIGHT = 0.3
+export const BTC_WEIGHT = 0.7
+export const ETH_WEIGHT = 0.3
 
 export function calculateAllocation(
   usdAmount: number,

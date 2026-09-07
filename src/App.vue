@@ -1,7 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import AllocationCalculator from './components/AllocationCalculator.vue'
+</script>
 
 <template>
   <main>
-    <h1>Asset Allocation Calculator</h1>
+    <AllocationCalculator />
   </main>
 </template>
