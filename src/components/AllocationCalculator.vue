@@ -30,12 +30,14 @@ const ethPercent = computed(() => (isNegative.value ? 0 : ETH_WEIGHT * 100))
 const btcLabel = `${Math.round(BTC_WEIGHT * 100)}% BTC allocation`
 const ethLabel = `${Math.round(ETH_WEIGHT * 100)}% ETH allocation`
 
-const btcValue = computed(() =>
-  isBlank.value ? '—' : `${formatCryptoAmount(allocation.value!.btcAmount, 8)} BTC`,
-)
-const ethValue = computed(() =>
-  isBlank.value ? '—' : `${formatCryptoAmount(allocation.value!.ethAmount, 6)} ETH`,
-)
+const btcValue = computed(() => {
+  if (isBlank.value || !allocation.value) return '—'
+  return `${formatCryptoAmount(allocation.value.btcAmount, 8)} BTC`
+})
+const ethValue = computed(() => {
+  if (isBlank.value || !allocation.value) return '—'
+  return `${formatCryptoAmount(allocation.value.ethAmount, 6)} ETH`
+})
 const btcSubValue = computed(() =>
   isBlank.value ? '—' : `≈ ${formatUsd((usdAmount.value ?? 0) * BTC_WEIGHT)}`,
 )

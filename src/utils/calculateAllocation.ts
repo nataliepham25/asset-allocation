@@ -1,3 +1,5 @@
+import type { CryptoRates } from '../types/exchange-rates'
+
 export interface AllocationResult {
   btcAmount: number
   ethAmount: number
@@ -6,10 +8,7 @@ export interface AllocationResult {
 export const BTC_WEIGHT = 0.7
 export const ETH_WEIGHT = 0.3
 
-export function calculateAllocation(
-  usdAmount: number,
-  rates: { BTC: number; ETH: number },
-): AllocationResult {
+export function calculateAllocation(usdAmount: number, rates: CryptoRates): AllocationResult {
   if (usdAmount <= 0) {
     return { btcAmount: 0, ethAmount: 0 }
   }

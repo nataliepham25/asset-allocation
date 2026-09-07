@@ -1,10 +1,12 @@
 <script setup lang="ts">
-defineProps<{
+interface AllocationResultProps {
   label: string
   value: string
   subValue: string
   accentColor: string
-}>()
+}
+
+defineProps<AllocationResultProps>()
 </script>
 
 <template>

@@ -1,27 +1,26 @@
 <script setup lang="ts">
 import { computed, ref, useId, watch } from 'vue'
 
-const props = withDefaults(
-  defineProps<{
-    label: string
-    modelValue: number | null
-    readonly?: boolean
-    error?: string | null
-    symbol?: string
-    symbolPosition?: 'prefix' | 'suffix'
-    /** ISO 4217 currency code (e.g. "USD"). When set, the value is formatted
-     * with Intl.NumberFormat while unfocused, and the `symbol` prop is ignored
-     * since the currency format already carries its own symbol. */
-    currency?: string
-  }>(),
-  {
-    readonly: false,
-    error: null,
-    symbol: '',
-    symbolPosition: 'prefix',
-    currency: undefined,
-  },
-)
+interface CurrencyInputProps {
+  label: string
+  modelValue: number | null
+  readonly?: boolean
+  error?: string | null
+  symbol?: string
+  symbolPosition?: 'prefix' | 'suffix'
+  /** ISO 4217 currency code (e.g. "USD"). When set, the value is formatted
+   * with Intl.NumberFormat while unfocused, and the `symbol` prop is ignored
+   * since the currency format already carries its own symbol. */
+  currency?: string
+}
+
+const props = withDefaults(defineProps<CurrencyInputProps>(), {
+  readonly: false,
+  error: null,
+  symbol: '',
+  symbolPosition: 'prefix',
+  currency: undefined,
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: number | null]
@@ -54,16 +53,16 @@ const displayValue = computed(() => {
   return props.modelValue === null ? '' : currencyFormatter.value.format(props.modelValue)
 })
 
-function onFocus() {
+function onFocus(): void {
   isFocused.value = true
   rawInput.value = props.modelValue === null ? '' : String(props.modelValue)
 }
 
-function onBlur() {
+function onBlur(): void {
   isFocused.value = false
 }
 
-function onInput(event: Event) {
+function onInput(event: Event): void {
   const raw = (event.target as HTMLInputElement).value
   rawInput.value = raw
 
