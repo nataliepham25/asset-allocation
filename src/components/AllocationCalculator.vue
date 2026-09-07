@@ -4,9 +4,13 @@ import CurrencyInput from './CurrencyInput.vue'
 import AllocationResult from './AllocationResult.vue'
 import { useExchangeRates } from '../composables/useExchangeRates'
 import { calculateAllocation, BTC_WEIGHT, ETH_WEIGHT } from '../utils/calculateAllocation'
+import { formatCryptoAmount, formatUsd } from '../utils/formatters'
+
+const BTC_COLOR = '#f7931a'
+const ETH_COLOR = '#627eea'
 
 const usdAmount = ref<number | null>(null)
-const { rates, loading, error, refresh } = useExchangeRates()
+const { rates, loading, error, updatedAt, refresh } = useExchangeRates()
 
 const isNegative = computed(() => usdAmount.value !== null && usdAmount.value < 0)
 const inputError = computed(() =>
@@ -27,61 +31,80 @@ const btcLabel = `${Math.round(BTC_WEIGHT * 100)}% BTC allocation`
 const ethLabel = `${Math.round(ETH_WEIGHT * 100)}% ETH allocation`
 
 const btcValue = computed(() =>
-  isBlank.value ? '—' : formatCrypto(allocation.value!.btcAmount, 'BTC'),
+  isBlank.value ? '—' : `${formatCryptoAmount(allocation.value!.btcAmount, 8)} BTC`,
 )
 const ethValue = computed(() =>
-  isBlank.value ? '—' : formatCrypto(allocation.value!.ethAmount, 'ETH'),
+  isBlank.value ? '—' : `${formatCryptoAmount(allocation.value!.ethAmount, 6)} ETH`,
 )
 const btcSubValue = computed(() =>
-  isBlank.value ? '—' : formatUsd((usdAmount.value ?? 0) * BTC_WEIGHT),
+  isBlank.value ? '—' : `≈ ${formatUsd((usdAmount.value ?? 0) * BTC_WEIGHT)}`,
 )
 const ethSubValue = computed(() =>
-  isBlank.value ? '—' : formatUsd((usdAmount.value ?? 0) * ETH_WEIGHT),
+  isBlank.value ? '—' : `≈ ${formatUsd((usdAmount.value ?? 0) * ETH_WEIGHT)}`,
 )
 
-function formatCrypto(amount: number, symbol: string): string {
-  return `${amount.toFixed(8)} ${symbol}`
-}
-
-function formatUsd(amount: number): string {
-  return `≈ $${amount.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`
-}
+const updatedAtLabel = computed(() =>
+  updatedAt.value ? `Rates as of ${updatedAt.value.toLocaleTimeString()}` : '',
+)
 </script>
 
 <template>
   <div class="allocation-calculator">
-    <h1>Asset allocation calculator</h1>
+    <header class="allocation-calculator__header">
+      <h1>Asset allocation calculator</h1>
+      <p class="allocation-calculator__subtitle">
+        See how your holdings split across BTC and ETH at a fixed 70/30 mix.
+      </p>
+    </header>
 
-    <p v-if="loading" class="allocation-calculator__status">Loading exchange rates…</p>
-
-    <div
-      v-else-if="error"
-      class="allocation-calculator__status allocation-calculator__status--error"
-    >
+    <div v-if="error" class="allocation-calculator__status allocation-calculator__status--error">
       <p>{{ error }}</p>
       <button type="button" @click="refresh">Retry</button>
     </div>
 
-    <div v-else class="allocation-calculator__layout">
-      <CurrencyInput v-model="usdAmount" label="Investable assets" symbol="$" :error="inputError" />
+    <div v-else class="allocation-calculator__body">
+      <CurrencyInput
+        v-if="!loading"
+        v-model="usdAmount"
+        label="Investable assets"
+        currency="USD"
+        :error="inputError"
+      />
+      <div v-else class="skeleton skeleton--input" aria-hidden="true" />
 
-      <div class="allocation-calculator__results">
+      <div class="allocation-calculator__results" aria-live="polite">
+        <p v-if="updatedAtLabel" class="allocation-calculator__timestamp">{{ updatedAtLabel }}</p>
+        <div v-else-if="loading" class="skeleton skeleton--line" aria-hidden="true" />
+
         <div class="proportion-bar">
           <div
-            class="proportion-bar__segment proportion-bar__segment--btc"
-            :style="{ width: btcPercent + '%' }"
+            class="proportion-bar__segment"
+            :style="{ width: btcPercent + '%', backgroundColor: BTC_COLOR }"
           />
           <div
-            class="proportion-bar__segment proportion-bar__segment--eth"
-            :style="{ width: ethPercent + '%' }"
+            class="proportion-bar__segment"
+            :style="{ width: ethPercent + '%', backgroundColor: ETH_COLOR }"
           />
         </div>
 
-        <AllocationResult :label="btcLabel" :value="btcValue" :sub-value="btcSubValue" />
-        <AllocationResult :label="ethLabel" :value="ethValue" :sub-value="ethSubValue" />
+        <template v-if="!loading">
+          <AllocationResult
+            :label="btcLabel"
+            :value="btcValue"
+            :sub-value="btcSubValue"
+            :accent-color="BTC_COLOR"
+          />
+          <AllocationResult
+            :label="ethLabel"
+            :value="ethValue"
+            :sub-value="ethSubValue"
+            :accent-color="ETH_COLOR"
+          />
+        </template>
+        <template v-else>
+          <div class="skeleton skeleton--card" aria-hidden="true" />
+          <div class="skeleton skeleton--card" aria-hidden="true" />
+        </template>
       </div>
     </div>
   </div>
@@ -89,23 +112,55 @@ function formatUsd(amount: number): string {
 
 <style scoped>
 .allocation-calculator {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 40px 24px;
 }
 
-.allocation-calculator__layout {
+@media (max-width: 480px) {
+  .allocation-calculator {
+    padding: 24px 16px;
+  }
+}
+
+.allocation-calculator__header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 48px;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.allocation-calculator__header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.allocation-calculator__subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.allocation-calculator__body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .allocation-calculator__results {
   display: flex;
-  flex: 1;
-  min-width: 240px;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
+}
+
+.allocation-calculator__timestamp {
+  margin: 0;
+  color: #888;
+  font-size: 0.8rem;
 }
 
 .allocation-calculator__status {
@@ -133,11 +188,21 @@ function formatUsd(amount: number): string {
   transition: width 0.2s ease;
 }
 
-.proportion-bar__segment--btc {
-  background: #f7931a;
+.skeleton {
+  border-radius: 8px;
+  background: #eee;
 }
 
-.proportion-bar__segment--eth {
-  background: #627eea;
+.skeleton--input {
+  height: 44px;
+}
+
+.skeleton--line {
+  width: 140px;
+  height: 14px;
+}
+
+.skeleton--card {
+  height: 94px;
 }
 </style>

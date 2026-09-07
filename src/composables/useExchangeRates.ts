@@ -12,6 +12,7 @@ export function useExchangeRates() {
   const rates = ref<CryptoRates | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const updatedAt = ref<Date | null>(null)
 
   async function refresh() {
     loading.value = true
@@ -30,6 +31,7 @@ export function useExchangeRates() {
         BTC: Number(body.data.rates.BTC),
         ETH: Number(body.data.rates.ETH),
       }
+      updatedAt.value = new Date()
     } catch {
       error.value = 'Unable to load exchange rates. Please try again.'
     } finally {
@@ -39,5 +41,5 @@ export function useExchangeRates() {
 
   onMounted(refresh)
 
-  return { rates, loading, error, refresh }
+  return { rates, loading, error, updatedAt, refresh }
 }
