@@ -120,12 +120,14 @@ const updatedAtLabel = computed(() =>
   gap: 28px;
   max-width: 420px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 2rem;
+  background: #f2f2f5;
+  border-radius: 8px;
 }
 
 @media (max-width: 480px) {
   .allocation-calculator {
-    padding: 24px 16px;
+    padding: 1.5rem;
   }
 }
 
